@@ -1,8 +1,78 @@
-<html>
-	<head>
-		<title>Painel de Leilões</title>
-	</head>
-	<body>
-		<h1>Lista aqui!</h1>
-	</body>
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <meta name="robots" content="noindex">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+    <script type="text/javascript">
+      function buscarLista() {
+        const inputColunas = document.getElementById("colunas").value;
+        const inputFiltro = document.getElementById("filtros").value;
+        const colunas = JSON.parse(inputColunas.trim().length < 2 ? '{ "original": false, "log": false }' : inputColunas);
+        const filtro = JSON.parse(inputFiltro.trim().length < 2 ? '{ "encerrado": {"$ne": true} }' : inputFiltro);
+        const xhttp = new XMLHttpRequest();
+
+        console.log('param', { colunas, filtro });
+
+        xhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+            const response = JSON.parse(this.responseText);
+            let tbody = "";
+
+            console.log('----', response);
+
+            response.lista.forEach((i) => {
+              tbody += '<tr>';
+              tbody +=   `<td>${i.veiculo}</td>`;
+              tbody +=   `<td>${i.ano}</td>`;
+              tbody +=   `<td>R$ ${i.ultimoLanceValor}</td>`;
+              tbody +=   `<td>${i.localLote}</td>`;
+              tbody +=   `<td>${i.situacao}</td>`;
+              tbody +=   `<td>${JSON.stringify(i.registro)}</td>`;
+              tbody += '</tr>';
+            });
+
+            document.getElementById("colunas").value = JSON.stringify(response.colunas);
+            document.getElementById("filtros").value = JSON.stringify(response.filtro);
+            document.getElementById("tableCorpo").innerHTML = tbody
+          }
+        };
+        xhttp.open("POST", "http://192.168.0.4:8181/list", true);
+        xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xhttp.setRequestHeader('Access-Control-Allow-Origin', 'http://localhost');
+        xhttp.setRequestHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+        xhttp.setRequestHeader('Access-Control-Allow-Headers', 'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers');
+        xhttp.send(JSON.stringify({ colunas, filtro }));
+      }
+    </script>
+
+    <title>Painel de Leilões</title>
+  </head>
+  <body>
+    <div class="alert alert-secondary">
+      <h4>Filtros</h4>
+      <form>
+        <div class="row">
+          <div class="form-group w-25">
+            <label for="exampleFormControlTextarea1">Colunas</label>
+            <textarea class="form-control" id="colunas" rows="3"></textarea>
+          </div>
+          <div class="form-group w-25">
+            <label for="exampleFormControlTextarea1">Filtros</label>
+            <textarea class="form-control" id="filtros" rows="3"></textarea>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-dark" onclick="buscarLista()">Buscar</button>
+      </form>
+      <table>
+        <thead></thead>
+        <tbody id="tableCorpo"></tbody>
+      </table>
+    </div>
+    <div id="demo"></div>
+  </body>
 </html>
