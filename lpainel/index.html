@@ -42,7 +42,7 @@
         };
         xhttp.open("POST", "http://192.168.0.4:8181/list", true);
         xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-        xhttp.setRequestHeader('Access-Control-Allow-Origin', 'http://localhost');
+        xhttp.setRequestHeader('Access-Control-Allow-Origin', 'http://bruno.tuy.com.br/lpainel');
         xhttp.setRequestHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
         xhttp.setRequestHeader('Access-Control-Allow-Headers', 'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers');
         xhttp.send(JSON.stringify({ colunas, filtro }));
