@@ -24,14 +24,19 @@
 
             console.log('----', response);
 
-            response.lista.forEach((i) => {
+            response.lista.forEach((i, index) => {
+              const bg = index%2 == 0 ? ' bg-light ' : ' text-light bg-dark ';
+              const local = i.localLote && i.localLote.length > 10
+                ? i.localLote.substring(i.localLote.length-2)
+                : i.localLote;
+
               tbody += '<tr>';
-              tbody +=   `<td>${i.veiculo}</td>`;
-              tbody +=   `<td>${i.ano}</td>`;
-              tbody +=   `<td>R$ ${i.ultimoLanceValor}</td>`;
-              tbody +=   `<td>${i.localLote}</td>`;
-              tbody +=   `<td>${i.situacao}</td>`;
-              tbody +=   `<td>${JSON.stringify(i.registro)}</td>`;
+              tbody +=   `<td style="cursor: pointer" class="p-1 ${bg} border-right" onclick="abrir(this)">${JSON.stringify(i.registro)}</td>`;
+              tbody +=   `<td class="p-1 ${bg} border-right">${i.veiculo}</td>`;
+              tbody +=   `<td class="p-1 ${bg} border-right">${i.ano}</td>`;
+              tbody +=   `<td class="p-1 ${bg} border-right">R$ ${i.ultimoLanceValor}</td>`;
+              tbody +=   `<td class="p-1 ${bg} border-right">${local}</td>`;
+              tbody +=   `<td class="p-1 ${bg}">${i.situacao}</td>`;
               tbody += '</tr>';
             });
 
@@ -47,11 +52,96 @@
         xhttp.setRequestHeader('Access-Control-Allow-Headers', 'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers');
         xhttp.send(JSON.stringify({ colunas, filtro }));
       }
+
+      function abrir(input) {
+        const registro = JSON.parse(input.innerHTML);
+        console.log('-- abrir o registro', registro);
+
+        const xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+            const response = JSON.parse(this.responseText);
+            console.log('resposta foi essa', response);
+
+            const i = response.lista[0];
+            const html = ['<span class="close" onclick="closeModal()">&times;</span>'];
+
+            Object.entries(i)
+              .filter(([key]) => !['_id', 'log', 'fotos', 'original'].includes(key))
+              .forEach(([key, value]) => {
+                html.push(`<p>${key} <strong>${JSON.stringify(value)}</strong></p>`);
+              });
+
+            document.getElementById("modalContent").innerHTML = html.join('');
+
+            openModal();
+          }
+        };
+
+        xhttp.open("POST", "http://192.168.0.4:8181/list", true);
+        xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xhttp.setRequestHeader('Access-Control-Allow-Origin', 'http://bruno.tuy.com.br/lpainel');
+        xhttp.setRequestHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+        xhttp.setRequestHeader('Access-Control-Allow-Headers', 'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers');
+        xhttp.send(JSON.stringify({ filtro: { registro } }));
+      }
+
+      function openModal() {
+        const modal = document.getElementById("myModal");
+
+        modal.style.display = "block";
+      }
+
+      function closeModal() {
+        const modal = document.getElementById("myModal");
+
+        modal.style.display = "none";
+      }
     </script>
+
+    <style type="text/css">
+      /* The Modal (background) */
+      .modalCl {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+      }
+
+      /* Modal Content/Box */
+      .modalCl-content {
+        background-color: #fefefe;
+        margin: 1% auto; /* 15% from the top and centered */
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%; /* Could be more or less, depending on screen size */
+      }
+
+      /* The Close Button */
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+
+      .close:hover,
+      .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+      }
+    </style>
 
     <title>Painel de Leilões</title>
   </head>
-  <body>
+  <body class="bg-secondary">
     <div class="alert alert-secondary">
       <h4>Filtros</h4>
       <form>
@@ -68,11 +158,17 @@
 
         <button type="button" class="btn btn-dark" onclick="buscarLista()">Buscar</button>
       </form>
-      <table>
-        <thead></thead>
-        <tbody id="tableCorpo"></tbody>
-      </table>
+
+      <div id="myModal" class="modalCl">
+        <div class="modalCl-content" id="modalContent">
+          <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+      </div>
+
     </div>
-    <div id="demo"></div>
+    <table>
+      <thead></thead>
+      <tbody id="tableCorpo"></tbody>
+    </table>
   </body>
 </html>
