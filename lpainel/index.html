@@ -11,11 +11,12 @@
       function buscarLista() {
         const veiculo = document.getElementById("veiculo").value;
         const ativo = document.getElementById("encerradoNao").checked;
+        const inputFiltro = document.getElementById("filtros").value;
+        const usarJSON = document.getElementById("usarJSON").checked && inputFiltro.trim().length > 2;
+        const filtro = usarJSON ? JSON.parse(inputFiltro) : { encerrado: ativo ? {"$ne": true} : true };
         const xhttp = new XMLHttpRequest();
 
-        const filtro = { encerrado: ativo ? {"$ne": true} : true };
-
-        if (veiculo && veiculo.length > 0) {
+        if (!usarJSON && veiculo && veiculo.length > 0) {
           filtro.veiculo = {"$regex": veiculo.toUpperCase()};
         }
 
@@ -184,8 +185,9 @@
         <div class="form-group w-50 mt-2">
           <label for="exampleFormControlTextarea1">JSON</label>
           <textarea class="form-control" id="filtros" rows="3"></textarea>
+          <input type="checkbox" class="form-check-input ml-2" id="usarJSON">
+          <label class="form-check-label ml-4" for="usarJSON">Usar JSON</label>
         </div>
-
         <div class="row">
           <div><button type="button" class="btn btn-dark" onclick="buscarLista()">Buscar</button></div>
           <div id="total" class="ml-4 pt-2"></div>
