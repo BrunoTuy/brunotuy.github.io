@@ -9,40 +9,55 @@
 
     <script type="text/javascript">
       function buscarLista() {
-        const inputColunas = document.getElementById("colunas").value;
-        const inputFiltro = document.getElementById("filtros").value;
-        const colunas = JSON.parse(inputColunas.trim().length < 2 ? '{ "original": false, "log": false }' : inputColunas);
-        const filtro = JSON.parse(inputFiltro.trim().length < 2 ? '{ "encerrado": {"$ne": true} }' : inputFiltro);
+        const veiculo = document.getElementById("veiculo").value;
+        const ativo = document.getElementById("encerradoNao").checked;
         const xhttp = new XMLHttpRequest();
 
-        console.log('param', { colunas, filtro });
+        const filtro = { encerrado: ativo ? {"$ne": true} : true };
+
+        if (veiculo && veiculo.length > 0) {
+          filtro.veiculo = {"$regex": veiculo.toUpperCase()};
+        }
+
+        const param = {
+          filtro,
+          colunas: {
+            "registro": true,
+            "veiculo": true,
+            "vendedor": true,
+            "ano": true,
+            "ultimoLanceValor": true,
+            "localLote": true,
+            "situacao": true
+          }
+        }
+        console.log('param', param);
 
         xhttp.onreadystatechange = function() {
           if (this.readyState == 4 && this.status == 200) {
-            const response = JSON.parse(this.responseText);
+            const { lista, filtro } = JSON.parse(this.responseText);
             let tbody = "";
 
-            console.log('----', response);
-
-            response.lista.forEach((i, index) => {
+            lista.forEach(({ registro, localLote, veiculo, ano, ultimoLanceValor, situacao, vendedor }, index) => {
               const bg = index%2 == 0 ? ' bg-light ' : ' text-light bg-dark ';
-              const local = i.localLote && i.localLote.length > 10
-                ? i.localLote.substring(i.localLote.length-2)
-                : i.localLote;
+              const local = localLote && localLote.length > 10
+                ? localLote.substring(localLote.length-2)
+                : localLote;
 
               tbody += '<tr>';
-              tbody +=   `<td style="cursor: pointer" class="p-1 ${bg} border-right" onclick="abrir(this)">${JSON.stringify(i.registro)}</td>`;
-              tbody +=   `<td class="p-1 ${bg} border-right">${i.veiculo}</td>`;
-              tbody +=   `<td class="p-1 ${bg} border-right">${i.ano}</td>`;
-              tbody +=   `<td class="p-1 ${bg} border-right">R$ ${i.ultimoLanceValor}</td>`;
+              tbody +=   `<td style="cursor: pointer" class="p-1 ${bg} border-right" onclick="abrir(this)">${JSON.stringify(registro)}</td>`;
+              tbody +=   `<td class="p-1 ${bg} border-right">${veiculo}</td>`;
+              tbody +=   `<td class="p-1 ${bg} border-right">${ano}</td>`;
+              tbody +=   `<td class="p-1 ${bg} border-right">R$ ${ultimoLanceValor}</td>`;
+              tbody +=   `<td class="p-1 ${bg} border-right">${vendedor}</td>`;
               tbody +=   `<td class="p-1 ${bg} border-right">${local}</td>`;
-              tbody +=   `<td class="p-1 ${bg}">${i.situacao}</td>`;
+              tbody +=   `<td class="p-1 ${bg}">${situacao}</td>`;
               tbody += '</tr>';
             });
 
-            document.getElementById("colunas").value = JSON.stringify(response.colunas);
-            document.getElementById("filtros").value = JSON.stringify(response.filtro);
+            document.getElementById("filtros").value = JSON.stringify(filtro);
             document.getElementById("tableCorpo").innerHTML = tbody
+            document.getElementById("total").innerHTML = `<b>${lista.length}</b> lotes encontrados`;
           }
         };
         xhttp.open("POST", "http://192.168.0.4:8181/list", true);
@@ -50,7 +65,7 @@
         xhttp.setRequestHeader('Access-Control-Allow-Origin', 'http://bruno.tuy.com.br/lpainel');
         xhttp.setRequestHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
         xhttp.setRequestHeader('Access-Control-Allow-Headers', 'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers');
-        xhttp.send(JSON.stringify({ colunas, filtro }));
+        xhttp.send(JSON.stringify(param));
       }
 
       function abrir(input) {
@@ -71,6 +86,14 @@
               .forEach(([key, value]) => {
                 html.push(`<p>${key} <strong>${JSON.stringify(value)}</strong></p>`);
               });
+
+            if (i.fotos) {
+              i.fotos.filter(({ baixou }) => baixou).forEach(({ filename }) => {
+                const file = filename.split('/').pop();
+
+                html.push(`<br><img src="http://192.168.0.4:8181/fotos/${file}" />`);
+              });
+            }
 
             document.getElementById("modalContent").innerHTML = html.join('');
 
@@ -145,18 +168,27 @@
     <div class="alert alert-secondary">
       <h4>Filtros</h4>
       <form>
-        <div class="row">
-          <div class="form-group w-25">
-            <label for="exampleFormControlTextarea1">Colunas</label>
-            <textarea class="form-control" id="colunas" rows="3"></textarea>
-          </div>
-          <div class="form-group w-25">
-            <label for="exampleFormControlTextarea1">Filtros</label>
-            <textarea class="form-control" id="filtros" rows="3"></textarea>
-          </div>
+        <div class="form-group w-50">
+          <label for="exampleFormControlInput1">Veículo</label>
+          <input type="text" class="form-control" id="veiculo" placeholder="POP">
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="encerrado" id="encerradoNao" value="nao" checked>
+          <label class="form-check-label" for="encerradoNao">Ativos</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="encerrado" id="encerradoSim" value="sim">
+          <label class="form-check-label" for="encerradoSim">Encerrados</label>
+        </div>
+        <div class="form-group w-50 mt-2">
+          <label for="exampleFormControlTextarea1">JSON</label>
+          <textarea class="form-control" id="filtros" rows="3"></textarea>
         </div>
 
-        <button type="button" class="btn btn-dark" onclick="buscarLista()">Buscar</button>
+        <div class="row">
+          <div><button type="button" class="btn btn-dark" onclick="buscarLista()">Buscar</button></div>
+          <div id="total" class="ml-4 pt-2"></div>
+        </div>
       </form>
 
       <div id="myModal" class="modalCl">
@@ -166,7 +198,7 @@
       </div>
 
     </div>
-    <table>
+    <table class="ml-4">
       <thead></thead>
       <tbody id="tableCorpo"></tbody>
     </table>
