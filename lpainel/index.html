@@ -31,7 +31,6 @@
             "situacao": true
           }
         }
-        console.log('param', param);
 
         xhttp.onreadystatechange = function() {
           if (this.readyState == 4 && this.status == 200) {
@@ -70,8 +69,6 @@
 
       function abrir(input) {
         const registro = JSON.parse(input.innerHTML);
-        console.log('-- abrir o registro', registro);
-
         const xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
           if (this.readyState == 4 && this.status == 200) {
@@ -80,6 +77,10 @@
 
             const i = response.lista[0];
             const html = ['<span class="close" onclick="closeModal()">&times;</span>'];
+
+            if (i.site === 'vipleiloes.com.br') {
+              html.push(`<p><a href="https:www.vipleiloes.com.br${i.original.url}" target="_blank">Link externo</a></p>`);
+            }
 
             Object.entries(i)
               .filter(([key]) => !['_id', 'log', 'fotos', 'original'].includes(key))
