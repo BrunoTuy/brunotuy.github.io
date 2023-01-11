@@ -9,6 +9,7 @@
 
     <script type="text/javascript">
       function buscarLista() {
+        const API = document.getElementById("api").value;
         const veiculo = document.getElementById("veiculo").value;
         const ativo = document.getElementById("encerradoNao").checked;
         const inputFiltro = document.getElementById("filtros").value;
@@ -60,7 +61,7 @@
             document.getElementById("total").innerHTML = `<b>${lista.length}</b> lotes encontrados`;
           }
         };
-        xhttp.open("POST", "http://192.168.0.4:8181/list", true);
+        xhttp.open("POST", `${API}/list`, true);
         xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
         xhttp.setRequestHeader('Access-Control-Allow-Origin', 'http://bruno.tuy.com.br/lpainel');
         xhttp.setRequestHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -69,6 +70,7 @@
       }
 
       function abrir(input) {
+        const API = document.getElementById("api").value;
         const registro = JSON.parse(input.innerHTML);
         const xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
@@ -93,7 +95,7 @@
               i.fotos.filter(({ baixou }) => baixou).forEach(({ filename }) => {
                 const file = filename.split('/').pop();
 
-                html.push(`<br><img src="http://192.168.0.4:8181/fotos/${file}" />`);
+                html.push(`<br><img src="${API}/fotos/${file}" />`);
               });
             }
 
@@ -103,7 +105,7 @@
           }
         };
 
-        xhttp.open("POST", "http://192.168.0.4:8181/list", true);
+        xhttp.open("POST", `${API}/list`, true);
         xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
         xhttp.setRequestHeader('Access-Control-Allow-Origin', 'http://bruno.tuy.com.br/lpainel');
         xhttp.setRequestHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -168,6 +170,10 @@
   </head>
   <body class="bg-secondary">
     <div class="alert alert-secondary">
+      <div class="form-group w-50">
+        <label for="api">API</label>
+        <input type="text" class="form-control" id="api" value="http://localhost:8181">
+      </div>
       <h4>Filtros</h4>
       <form>
         <div class="form-group w-50">
