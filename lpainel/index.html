@@ -118,10 +118,13 @@
               });
 
             if (i.fotos) {
-              i.fotos.filter(({ baixou }) => baixou).forEach(({ filename }) => {
-                const file = filename.split('/').pop();
+              i.fotos.forEach(({ filename, url, baixou }) => {
+                const file = (filename || '').split('/').pop();
+                const u = baixou && filename
+                  ? `${API}/fotos/${file}`
+                  : url;
 
-                html.push(`<br><img src="${API}/fotos/${file}" />`);
+                html.push(`<br><img src="${u}" />`);
               });
             }
 
