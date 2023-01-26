@@ -132,7 +132,7 @@
             }
 
             Object.entries(i)
-              .filter(([key]) => !['_id', 'log', 'fotos', 'original'].includes(key))
+              .filter(([key]) => !['_id', 'log', 'fotos', 'original', 'link'].includes(key))
               .forEach(([key, value]) => {
                 html.push(`<p>${key} <strong>${JSON.stringify(value)}</strong></p>`);
               });
