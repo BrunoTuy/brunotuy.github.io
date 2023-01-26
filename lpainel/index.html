@@ -20,8 +20,8 @@
               ? localLote.substring(localLote.length-2)
               : localLote;
 
-            tbody += '<tr>';
-            tbody +=   `<td style="cursor: pointer" class="p-1 ${bg} border-right" onclick="abrir(this)">${JSON.stringify(registro)}</td>`;
+            tbody += '<tr class="lotes">';
+            tbody +=   `<td style="cursor: pointer" class="head p-1 ${bg} border-right" onclick="abrir(this)" index="${index}">${JSON.stringify(registro)}</td>`;
             tbody +=   `<td class="p-1 ${bg} border-right">${veiculo}</td>`;
             tbody +=   `<td class="p-1 ${bg} border-right">${ano}</td>`;
             tbody +=   `<td class="p-1 ${bg} border-right">R$ ${ultimoLanceValor}</td>`;
@@ -95,9 +95,23 @@
         xhttp.send(JSON.stringify(param));
       }
 
-      function abrir(input) {
+      function abrir(td, nIndex) {
+        const lotes = document.getElementsByClassName("lotes");
+        const index = td ? Number(td.getAttribute("index")) : nIndex;
+        const anterior = index < 1 ? null : index - 1;
+        const proximo = index + 1 >= lotes.length ? null : index + 1;
+
+        let registro = td ? JSON.parse(td.innerHTML) : null;
+
+        for (let tr of lotes) {
+          const it = tr.getElementsByClassName("head")[0];
+
+          if (Number(it.getAttribute("index")) === index) {
+            registro = JSON.parse(it.innerHTML);
+          }
+        }
+
         const API = document.getElementById("api").value;
-        const registro = JSON.parse(input.innerHTML);
         const xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
           if (this.readyState == 4 && this.status == 200) {
@@ -106,6 +120,12 @@
 
             const i = response.lista[0];
             const html = ['<span class="close" onclick="closeModal()">&times;</span>'];
+
+            html.push('<div class="row p-4">');
+            (anterior || anterior === 0) && html.push(`<span style="cursor: pointer" onclick="abrir(null, ${anterior})">anterior</span>`);
+            html.push(`<span class="px-4 bolder">#${index+1}</span>`);
+            proximo && html.push(`<span style="cursor: pointer" onclick="abrir(null, ${proximo})">proximo</span>`);
+            html.push('</div>');
 
             if (i.site === 'vipleiloes.com.br') {
               html.push(`<p><a href="https://www.vipleiloes.com.br${i.original.url}" target="_blank">Link externo</a></p>`);
@@ -205,7 +225,7 @@
     <div class="alert alert-secondary">
       <div class="form-group w-50">
         <label for="api">API</label>
-        <input type="text" class="form-control" id="api" value="http://localhost:8181">
+        <input type="text" class="form-control" id="api" value="http://marte:8181">
       </div>
       <h4>Filtros</h4>
       <form>
