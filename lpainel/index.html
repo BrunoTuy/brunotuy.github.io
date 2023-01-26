@@ -127,8 +127,8 @@
             proximo && html.push(`<span style="cursor: pointer" onclick="abrir(null, ${proximo})">proximo</span>`);
             html.push('</div>');
 
-            if (i.site === 'vipleiloes.com.br') {
-              html.push(`<p><a href="https://www.vipleiloes.com.br${i.original.url}" target="_blank">Link externo</a></p>`);
+            if (i.link) {
+              html.push(`<p><a href="${i.link}" target="_blank">Link externo</a></p>`);
             }
 
             Object.entries(i)
